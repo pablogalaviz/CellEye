@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 project(CellEye)
 
 set(CMAKE_CXX_STANDARD 14)
+
+
+set(CMAKE_PREFIX_PATH "/Users/pgalaviz/Qt5.12.9/5.12.9/clang_64")
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -35,6 +39,7 @@ message(${CMAKE_AUTOUIC_SEARCH_PATHS})
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
+
 find_package(Qt5 COMPONENTS Widgets Core REQUIRED)
 
 target_link_libraries(CellEye ${OpenCV_LIBS} Qt5::Widgets Boost::program_options Boost::iostreams  Boost::filesystem Boost::system )
