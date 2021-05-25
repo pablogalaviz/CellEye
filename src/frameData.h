@@ -48,6 +48,7 @@ struct frameData {
 
     int iterations = 10;
     double threshold = 0.7;
+    int img_threshold = 125;
     int error = 5;
     double area_pixel = 0;
     double error_area_pixel = 0;
@@ -62,6 +63,7 @@ struct frameData {
         result << "{";
         result << "\"iterations\":" << iterations;
         result << ",\"threshold\":" << threshold;
+        result << ",\"img_threshold\":" << img_threshold;
         result << ",\"error\":" << error;
         result << ",\"area_pixel\":" << area_pixel;
         result << ",\"error_area_pixel\":" << error_area_pixel;
@@ -97,6 +99,7 @@ struct frameData {
         try {
             iterations = tree.get<int>("iterations");
             threshold = tree.get<double>("threshold");
+            img_threshold = tree.get<double>("img_threshold");
             error = tree.get<int>("error");
             area_path = tree.get<double>("area_path");
             error_area_path = tree.get<double>("error_area_path");

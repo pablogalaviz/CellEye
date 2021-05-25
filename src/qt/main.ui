@@ -221,7 +221,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Threshold:</string>
+         <string>Background Threshold:</string>
         </property>
        </widget>
       </item>
@@ -244,6 +244,26 @@
         </property>
         <property name="tickInterval">
          <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Image Threshold</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="imgThresholdHorizontalSlider">
+        <property name="maximum">
+         <number>255</number>
+        </property>
+        <property name="value">
+         <number>125</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -315,6 +335,7 @@
    <addaction name="action_Open"/>
    <addaction name="action_Save"/>
    <addaction name="action_Prev"/>
+   <addaction name="action_Play"/>
    <addaction name="action_Next"/>
   </widget>
   <action name="action_Open">
@@ -370,6 +391,21 @@
    </property>
    <property name="shortcut">
     <string>Left</string>
+   </property>
+  </action>
+  <action name="action_Play">
+   <property name="icon">
+    <iconset resource="../../resources/resources.qrc">
+     <normaloff>:/States/images/media-playback-start.png</normaloff>:/States/images/media-playback-start.png</iconset>
+   </property>
+   <property name="text">
+    <string>Play</string>
+   </property>
+   <property name="toolTip">
+    <string>Automate</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>
@@ -454,6 +490,22 @@
     <hint type="destinationlabel">
      <x>91</x>
      <y>83</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>processPushButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>imgThresholdHorizontalSlider</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>23</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>771</x>
+     <y>706</y>
     </hint>
    </hints>
   </connection>

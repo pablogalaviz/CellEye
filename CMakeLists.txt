@@ -14,17 +14,17 @@ add_executable(CellEye main.cpp src/logger.h src/utils.h src/window.cpp src/wind
 
 #BOOST SETUP
 set(BOOST_ROOT "/opt/boost")
-set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
+set(Boost_USE_STATIC_RUNTIME ON)
 
 find_package(Boost COMPONENTS program_options  iostreams  filesystem system REQUIRED)
 
 #message(STATUS ${Boost_LIBRARIES})
 
-find_package( OpenCV REQUIRED )
+find_package(OpenCV REQUIRED )
 
-include_directories(/usr/local/include/)
+#include_directories(/usr/local/include/)
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Could not find boost!")
