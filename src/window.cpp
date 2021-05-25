@@ -17,18 +17,23 @@
 #include <QtGui/QVector2D>
 #include <QtGui/QBitmap>
 #include <QtWidgets/QMessageBox>
+#include <random>
 
 
-Window::Window(QMainWindow *parent) {
+Window::Window(QMainWindow *parent, bool _debug) {
 
+    debug = _debug;
     main_ui.setupUi(parent);
 
     QObject::connect(main_ui.action_Open, SIGNAL (triggered(bool)), this, SLOT (openFile(bool)));
     QObject::connect(main_ui.action_Save, SIGNAL (triggered(bool)), this, SLOT (saveFile(bool)));
     QObject::connect(main_ui.action_Next, SIGNAL (triggered()), this, SLOT (next()));
+    QObject::connect(main_ui.action_Play, SIGNAL (triggered()), this, SLOT (auto_process()));
     QObject::connect(main_ui.action_Prev, SIGNAL (triggered()), this, SLOT (previous()));
     QObject::connect(main_ui.iterationsSpinBox, SIGNAL (valueChanged(int)), this, SLOT (changeIterations(int)));
     QObject::connect(main_ui.thresholdHorizontalSlider, SIGNAL (valueChanged(int)), this, SLOT (changeThreshold(int)));
+    QObject::connect(main_ui.imgThresholdHorizontalSlider, SIGNAL (valueChanged(int)), this,
+                     SLOT (changeImgThreshold(int)));
     QObject::connect(main_ui.errorHorizontalSlider, SIGNAL (valueChanged(int)), this, SLOT (changeError(int)));
     QObject::connect(main_ui.experimentNameLineEdit, SIGNAL (textEdited(QString)), this, SLOT (changeName(QString)));
     QObject::connect(main_ui.experimentIdSpinBox, SIGNAL (valueChanged(int)), this, SLOT (changeId(int)));
@@ -43,6 +48,8 @@ Window::Window(QMainWindow *parent) {
     QObject::connect(this, SIGNAL (updateError(double)), main_ui.ErrorLcdNumber, SLOT (display(double)));
     QObject::connect(this, SIGNAL (updateIterations(int)), main_ui.iterationsSpinBox, SLOT (setValue(int)));
     QObject::connect(this, SIGNAL (updateThreshold(int)), main_ui.thresholdHorizontalSlider, SLOT (setValue(int)));
+    QObject::connect(this, SIGNAL (updateImgThreshold(int)), main_ui.imgThresholdHorizontalSlider,
+                     SLOT (setValue(int)));
     QObject::connect(this, SIGNAL (updateErrorRegion(int)), main_ui.errorHorizontalSlider, SLOT (setValue(int)));
 
     //QObject::connect(this, SIGNAL (lockProcessing( bool )), main_ui.iterationsSpinBox, SLOT (setEnabled( int)));
@@ -87,6 +94,7 @@ void Window::loadFrame() {
 
     emit updateIterations(currentFrameData.iterations);
     emit updateThreshold(static_cast<int>(std::round(currentFrameData.threshold * 100)));
+    emit updateImgThreshold(currentFrameData.img_threshold);
     emit updateErrorRegion(currentFrameData.error);
     emit updateArea(currentFrameData.area_path);
     emit updateError(currentFrameData.error_area_path);
@@ -117,12 +125,14 @@ void Window::saveFile(bool checked) {
     } else {
 
         boost::filesystem::path default_file = boost::filesystem::change_extension(session_data.file_name, ".csv");
-        QString qt_fileName = QFileDialog::getSaveFileName(this, "Save Data", QString::fromStdString(default_file.string()), "Csv Files (*.csv)");
+        QString qt_fileName = QFileDialog::getSaveFileName(this, "Save Data",
+                                                           QString::fromStdString(default_file.string()),
+                                                           "Csv Files (*.csv)");
         if (qt_fileName.isEmpty()) { return; }
         std::string fileName = qt_fileName.toStdString();
         boost::filesystem::path data_file = boost::filesystem::change_extension(fileName, ".csv");
 
-         LOGGER.info << "Save to file: " << data_file << std::endl;
+        LOGGER.info << "Save to file: " << data_file << std::endl;
 
 
         std::ofstream file(data_file.string());
@@ -142,12 +152,12 @@ void Window::saveFile(bool checked) {
 
             file << session_data.name
                  << "," << session_data.id
-                 << "," << item.first+1
+                 << "," << item.first + 1
                  << "," << item.second.area_path
                  << "," << item.second.error_area_path
                  << "," << item.second.area_pixel
                  << "," << item.second.error_area_pixel
-                 << "," << (item.second.flag?"True":"False")
+                 << "," << (item.second.flag ? "True" : "False")
                  << std::endl;
         }
 
@@ -179,7 +189,7 @@ void Window::openFile(bool checked) {
             boost::property_tree::ptree data_tree;
             boost::property_tree::read_json(dataFileName, data_tree);
             session_data.deserialize(data_tree);
-            processState=false;
+            processState = false;
         } else {
             session_data.name = boost::filesystem::basename(fileName);
             session_data.file_name = fileName;
@@ -207,6 +217,69 @@ void Window::openFile(bool checked) {
 
 }
 
+void Window::auto_process() {
+
+    if (processing || images.empty()) {
+        return;
+    }
+    processing = true;
+
+    LOGGER.debug << "Auto process " << std::endl;
+
+    QProgressDialog progress("Task in progress...", "Cancel", 0, images.size(), this);
+    progress.setWindowModality(Qt::WindowModal);
+
+    frameData previous = currentFrameData;
+
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> dist_1_100(1, 100);
+    std::uniform_int_distribution<> dist_1_255(1, 255);
+
+
+    double diff = 1;
+    int max_iter = 100;
+    double error_tolerance = 0.01;
+    for (int i = current + 1; i < images.size(); i++) {
+        progress.setValue(i);
+
+        cv::Mat to_proc = images[i](previous.roi);
+        frameData data = previous;
+        cv::imshow("to_proc", to_proc);
+
+
+        for (int count = 0; count < max_iter; count++) {
+
+            process(to_proc, data);
+            diff = abs(data.area_pixel - previous.area_pixel) / previous.area_pixel;
+
+            if (diff < error_tolerance) { break; }
+
+            data.threshold = rand() / RAND_MAX;
+            data.iterations = dist_1_100(gen);
+            data.img_threshold = dist_1_255(gen);
+            LOGGER.warning << "iteration " << count << std::endl;
+        }
+
+        LOGGER.debug << "Frame " << i << " diff: " << diff << std::endl;
+
+        previous = data;
+
+        sleep(0.5);
+        if (progress.wasCanceled())
+            break;
+    }
+    progress.setValue(images.size());
+
+    LOGGER.debug << "Done " << std::endl;
+
+    cv::destroyAllWindows();
+
+    processing = false;
+
+}
+
+
 void Window::update(bool reload) {
 
     if (images.empty()) { return; }
@@ -216,10 +289,14 @@ void Window::update(bool reload) {
     LOGGER.debug << " frame " << current << std::endl;
 
 
+    //START PROCESS
+
     cv::Mat to_proc = images[current](currentFrameData.roi);
 
     if (processState) {
-        currentFrameData.contours = process(to_proc);
+        currentFrameData.contours = process(to_proc, currentFrameData);
+        emit updateArea(currentFrameData.area_path);
+        emit updateError(currentFrameData.error_area_path);
     }
     if (reload) {
         QGraphicsScene *scene = new QGraphicsScene();
@@ -338,41 +415,68 @@ void Window::unsetCenter(double x, double y) {
 
 }
 
-std::vector<std::vector<cv::Point> > Window::process(const cv::Mat &image) {
+std::vector<std::vector<cv::Point> > Window::process(const cv::Mat &image, frameData &data) {
 
-    LOGGER.debug << "iterations: " << currentFrameData.iterations << std::endl;
-    LOGGER.debug << "threshold: " << currentFrameData.threshold << std::endl;
+    LOGGER.debug << "iterations: " << data.iterations << std::endl;
+    LOGGER.debug << "threshold: " << data.threshold << std::endl;
+    LOGGER.debug << "img_threshold: " << data.img_threshold << std::endl;
 
     std::vector<std::vector<cv::Point> > contours;
 
     cv::Mat gray;
     cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
+    if (debug) {
+        cv::imshow("gray", gray);
+    }
     cv::Mat thresh;
-    cv::threshold(gray, thresh, 0, 255, cv::THRESH_BINARY_INV + cv::THRESH_OTSU);
+//    cv::threshold(gray, thresh, 0, 255, cv::THRESH_BINARY_INV + cv::THRESH_OTSU);
+    int th_value = cv::threshold(gray, thresh, data.img_threshold, 255, cv::THRESH_BINARY_INV);
+    LOGGER.debug << "th_value: " << th_value << std::endl;
+
+
+    if (debug) {
+        cv::imshow("thresh", thresh);
+    }
 
     cv::Mat opening;
     cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-    cv::morphologyEx(thresh, opening, cv::MORPH_OPEN, element, cv::Point(-1, -1), currentFrameData.iterations);
+    cv::morphologyEx(thresh, opening, cv::MORPH_OPEN, element, cv::Point(-1, -1), data.iterations);
+
+    if (debug) {
+        cv::imshow("opening", opening);
+    }
 
     cv::Mat sure_bg;
-    cv::morphologyEx(opening, sure_bg, cv::MORPH_DILATE, element, cv::Point(-1, -1), currentFrameData.iterations);
+    cv::morphologyEx(opening, sure_bg, cv::MORPH_DILATE, element, cv::Point(-1, -1), data.iterations);
 
+    if (debug) {
+        cv::imshow("sure_bg", sure_bg);
+    }
 
     cv::Mat dist_transform;
     cv::distanceTransform(opening, dist_transform, cv::DIST_L2, 5);
 
+    if (debug) {
+        cv::imshow("dist_transform", dist_transform);
+    }
+
     cv::Mat sure_fg;
     double min_val, max_val;
     cv::minMaxIdx(dist_transform, &min_val, &max_val);
-    cv::threshold(dist_transform, sure_fg, currentFrameData.threshold * max_val, 255, CV_8U);
+    cv::threshold(dist_transform, sure_fg, data.threshold * max_val, 255, CV_8U);
     sure_fg.convertTo(sure_fg, CV_8U);
+
+    if (debug) {
+        cv::imshow("sure_fg", sure_fg);
+    }
 
     cv::Mat unknown;
     cv::subtract(sure_bg, sure_fg, unknown);
 
     cv::Mat markers;
     cv::connectedComponents(sure_fg, markers);
+
 
     cv::Mat markers_32;
     markers.convertTo(markers_32, CV_32SC1);
@@ -391,8 +495,8 @@ std::vector<std::vector<cv::Point> > Window::process(const cv::Mat &image) {
 
     cv::watershed(image_8uc3, markers_32);
 
-    //cv::minMaxIdx(markers_32,&min_val,&max_val);
-    //LOGGER.debug << " mask " << min_val << " " << max_val << std::endl;
+    cv::minMaxIdx(markers_32, &min_val, &max_val);
+    LOGGER.debug << " mask " << min_val << " " << max_val << std::endl;
 
 
     //image_8uc3.setTo(cv::Scalar(0, 0, 255), markers_32 == 2);
@@ -401,6 +505,12 @@ std::vector<std::vector<cv::Point> > Window::process(const cv::Mat &image) {
     cv::Mat mask(image_8uc3.rows, image_8uc3.cols, CV_8UC1);
     mask = 0;
     mask.setTo(255, markers_32 == 2);
+    mask.setTo(255, markers_32 >= 2);
+
+    if (debug) {
+        cv::imshow("mask", mask);
+    }
+
 
     findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 /*
@@ -411,41 +521,39 @@ std::vector<std::vector<cv::Point> > Window::process(const cv::Mat &image) {
     }
     cv::imshow( "Contours", drawing );
 
-    cv::imshow("result mask ",mask);
+cv::imshow("result mask ",mask);
+
 */
 
-    currentFrameData.area_pixel = 0;
+    data.area_pixel = 0;
     for (int j = 0; j < markers_32.rows; j++)
         for (int i = 0; i < markers_32.cols; i++)
             if (markers_32.at<uint>(j, i) == 2)
-                currentFrameData.area_pixel += 1;
+                data.area_pixel += 1;
 
     {
-        double l = sqrt(currentFrameData.area_pixel);
-        double Ap = pow(l + currentFrameData.error, 2);
-        double Am = pow(l - currentFrameData.error, 2);
-        currentFrameData.error_area_pixel = Ap - Am;
+        double l = sqrt(data.area_pixel);
+        double Ap = pow(l + data.error, 2);
+        double Am = pow(l - data.error, 2);
+        data.error_area_pixel = Ap - Am;
     }
 
-    currentFrameData.area_path = 0;
+    data.area_path = 0;
     for (auto &c : contours) {
         LOGGER.debug << "contour size: " << c.size() << std::endl;
-        currentFrameData.area_path += cv::contourArea(c);
+        data.area_path += cv::contourArea(c);
     }
 
-    LOGGER.debug << "Area pixel: " << currentFrameData.area_pixel << " area_path " << currentFrameData.area_path
+    LOGGER.debug << "Area pixel: " << data.area_pixel << " area_path " << data.area_path
                  << std::endl;
 
     {
-        double l = sqrt(currentFrameData.area_path);
-        double Ap = pow(l + currentFrameData.error, 2);
-        double Am = pow(l - currentFrameData.error, 2);
-        currentFrameData.error_area_path = Ap - Am;
+        double l = sqrt(data.area_path);
+        double Ap = pow(l + data.error, 2);
+        double Am = pow(l - data.error, 2);
+        data.error_area_path = Ap - Am;
     }
 
-
-    emit updateArea(currentFrameData.area_path);
-    emit updateError(currentFrameData.error_area_path);
 
     return contours;
 

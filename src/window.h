@@ -9,11 +9,13 @@
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMainWindow>
 #include <qt/ui_main.h>
+
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include "sessionData.h"
 #include <boost/system/system_error.hpp>
 #include <boost/filesystem.hpp>
+#include <QProgressDialog>
 
 
 class Window : public QWidget
@@ -26,13 +28,16 @@ Q_OBJECT
     sessionData session_data;
     std::string dataFileName;
     bool processState;
+    bool processing = false;
 
     frameData currentFrameData;
 
+    QDialog dialog;
 
+    bool debug;
 
 public:
-    explicit Window(QMainWindow *parent = 0);
+    explicit Window(QMainWindow *parent = 0, bool _debug = false);
 protected slots:
     void openFile(bool checked);
     void saveFile(bool checked);
@@ -56,6 +61,10 @@ protected slots:
     }
     void changeThreshold(int value){
         currentFrameData.threshold=value/100.0;
+        update(false);
+    }
+    void changeImgThreshold(int value){
+        currentFrameData.img_threshold=value;
         update(false);
     }
     void changeError(int value){
@@ -82,6 +91,9 @@ protected slots:
         update(true);
     }
 
+
+    void auto_process();
+
 signals:
     void updateArea(double value);
     void updateError(double value);
@@ -91,6 +103,7 @@ signals:
     void updateStopState(bool value);
     void updateIterations(int value);
     void updateThreshold(int value);
+    void updateImgThreshold(int value);
     void updateErrorRegion(int value);
     void lockProcessing(bool);
 
@@ -98,7 +111,7 @@ private:
     cv::Rect new_roi;
     QGraphicsEllipseItem *ellipseItem;
     QGraphicsRectItem *roiRectangle;
-    std::vector<std::vector<cv::Point>> process(const cv::Mat &image);
+    std::vector<std::vector<cv::Point>> process(const cv::Mat &image,frameData &data);
     std::vector<QGraphicsPathItem *> pathItems;
 
     void loadData();

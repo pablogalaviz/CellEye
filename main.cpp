@@ -25,6 +25,7 @@ int main(int ac, char *av[]) {
         genericOptions.add_options()
                 ("backup", boost::program_options::value<bool>(&backup)->default_value(true), "Create a backup of previous output")
                 ("debug,d", "Shows debug messages in log")
+                ("debug-image,i", "Shows image processing steps")
                 ("output_path,o", boost::program_options::value<std::string>(&output_path)->default_value("output"), "Output directory name")
                 ("help,h", "Shows a help message")
                 ("silent,s", "Shows only errors");
@@ -61,7 +62,9 @@ int main(int ac, char *av[]) {
 
         QMainWindow widget;
 
-        Window fileWidget(&widget);
+        bool debug_image = vm.count("debug-image");
+
+        Window fileWidget(&widget, debug_image);
 
         widget.show();
 
