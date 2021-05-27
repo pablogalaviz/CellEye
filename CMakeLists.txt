@@ -10,13 +10,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-add_executable(CellEye main.cpp src/logger.h src/utils.h src/window.cpp src/window.h src/qt/main.ui resources/resources.qrc src/ImageItem.cpp src/ImageItem.h src/sessionData.cpp src/sessionData.h src/frameData.cpp src/frameData.h)
+add_executable(CellEye main.cpp src/logger.h src/utils.h src/window.cpp src/window.h src/qt/main.ui src/qt/plot.ui resources/resources.qrc src/ImageItem.cpp src/ImageItem.h src/sessionData.cpp src/sessionData.h src/frameData.cpp src/frameData.h src/plotDialog.cpp src/plotDialog.h)
 
 #BOOST SETUP
 set(BOOST_ROOT "/opt/boost")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
 
 find_package(Boost COMPONENTS program_options  iostreams  filesystem system REQUIRED)
 

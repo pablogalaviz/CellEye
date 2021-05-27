@@ -57,6 +57,7 @@ struct frameData {
     bool flag=false;
     std::vector<std::vector<cv::Point> > contours;
     cv::Rect roi;
+    double diff = 1e6;
 
     virtual std::string serialize() const {
         std::stringstream result;

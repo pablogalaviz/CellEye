@@ -5,6 +5,7 @@
 #include "window.h"
 #include "logger.h"
 #include "ImageItem.h"
+#include "plotDialog.h"
 #include <QPushButton>
 #include <QMouseEvent>
 #include <QGraphicsView>
@@ -30,6 +31,7 @@ Window::Window(QMainWindow *parent, bool _debug) {
     QObject::connect(main_ui.action_Next, SIGNAL (triggered()), this, SLOT (next()));
     QObject::connect(main_ui.action_Play, SIGNAL (triggered()), this, SLOT (auto_process()));
     QObject::connect(main_ui.action_Prev, SIGNAL (triggered()), this, SLOT (previous()));
+    QObject::connect(main_ui.action_Plot, SIGNAL (triggered()), this, SLOT (plot()));
     QObject::connect(main_ui.iterationsSpinBox, SIGNAL (valueChanged(int)), this, SLOT (changeIterations(int)));
     QObject::connect(main_ui.thresholdHorizontalSlider, SIGNAL (valueChanged(int)), this, SLOT (changeThreshold(int)));
     QObject::connect(main_ui.imgThresholdHorizontalSlider, SIGNAL (valueChanged(int)), this,
@@ -230,6 +232,7 @@ void Window::auto_process() {
     progress.setWindowModality(Qt::WindowModal);
 
     frameData previous = currentFrameData;
+    std::vector<frameData> processResult;
 
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -237,38 +240,53 @@ void Window::auto_process() {
     std::uniform_int_distribution<> dist_1_255(1, 255);
 
 
-    double diff = 1;
-    int max_iter = 100;
+    int max_iter = 1000;
     double error_tolerance = 0.01;
     for (int i = current + 1; i < images.size(); i++) {
         progress.setValue(i);
 
         cv::Mat to_proc = images[i](previous.roi);
+        frameData bestFit;
         frameData data = previous;
-        cv::imshow("to_proc", to_proc);
 
-
-        for (int count = 0; count < max_iter; count++) {
+        int count;
+        for (count = 0; count < max_iter; count++) {
 
             process(to_proc, data);
-            diff = abs(data.area_pixel - previous.area_pixel) / previous.area_pixel;
+            data.diff = abs(data.area_pixel - previous.area_pixel) / previous.area_pixel;
 
-            if (diff < error_tolerance) { break; }
+            if(data.diff < bestFit.diff){
+                bestFit=data;
+            }
+
+            if (data.diff < error_tolerance) { break; }
+
 
             data.threshold = rand() / RAND_MAX;
             data.iterations = dist_1_100(gen);
             data.img_threshold = dist_1_255(gen);
-            LOGGER.warning << "iteration " << count << std::endl;
         }
 
-        LOGGER.debug << "Frame " << i << " diff: " << diff << std::endl;
+        if(count > 0) {
+            LOGGER.warning << "iterations " << count << std::endl;
+        }
 
-        previous = data;
+        LOGGER.debug << "Frame " << i << " diff: " << bestFit.diff << std::endl;
 
-        sleep(0.5);
+        processResult.push_back(bestFit);
+        previous = bestFit;
+
         if (progress.wasCanceled())
             break;
     }
+
+    std::ofstream file(dataFileName);
+    for(int i = current; i < current+processResult.size(); i++ ){
+        session_data.data[i] = processResult[i];
+    }
+    file << serialize(session_data);
+    file.close();
+
     progress.setValue(images.size());
 
     LOGGER.debug << "Done " << std::endl;
@@ -277,8 +295,23 @@ void Window::auto_process() {
 
     processing = false;
 
+
+
 }
 
+
+
+void  Window::plot(){
+
+   //if(session_data.data.empty()){return;}
+
+    QDialog dialog;
+
+    plotDialog plot_ui(&dialog,session_data.data);
+
+    dialog.exec();
+
+}
 
 void Window::update(bool reload) {
 
@@ -294,7 +327,7 @@ void Window::update(bool reload) {
     cv::Mat to_proc = images[current](currentFrameData.roi);
 
     if (processState) {
-        currentFrameData.contours = process(to_proc, currentFrameData);
+        process(to_proc, currentFrameData);
         emit updateArea(currentFrameData.area_path);
         emit updateError(currentFrameData.error_area_path);
     }
@@ -415,7 +448,7 @@ void Window::unsetCenter(double x, double y) {
 
 }
 
-std::vector<std::vector<cv::Point> > Window::process(const cv::Mat &image, frameData &data) {
+void Window::process(const cv::Mat &image, frameData &data) {
 
     LOGGER.debug << "iterations: " << data.iterations << std::endl;
     LOGGER.debug << "threshold: " << data.threshold << std::endl;
@@ -554,8 +587,7 @@ cv::imshow("result mask ",mask);
         data.error_area_path = Ap - Am;
     }
 
-
-    return contours;
+    data.contours = contours;
 
 }
 

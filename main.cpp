@@ -64,7 +64,7 @@ int main(int ac, char *av[]) {
 
         bool debug_image = vm.count("debug-image");
 
-        Window fileWidget(&widget, debug_image);
+        Window mainWindow(&widget, debug_image);
 
         widget.show();
 

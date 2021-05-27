@@ -18,6 +18,8 @@
 #include <QProgressDialog>
 
 
+
+
 class Window : public QWidget
 {
 Q_OBJECT
@@ -31,8 +33,6 @@ Q_OBJECT
     bool processing = false;
 
     frameData currentFrameData;
-
-    QDialog dialog;
 
     bool debug;
 
@@ -94,6 +94,8 @@ protected slots:
 
     void auto_process();
 
+    void plot();
+
 signals:
     void updateArea(double value);
     void updateError(double value);
@@ -111,7 +113,7 @@ private:
     cv::Rect new_roi;
     QGraphicsEllipseItem *ellipseItem;
     QGraphicsRectItem *roiRectangle;
-    std::vector<std::vector<cv::Point>> process(const cv::Mat &image,frameData &data);
+    void process(const cv::Mat &image,frameData &data);
     std::vector<QGraphicsPathItem *> pathItems;
 
     void loadData();

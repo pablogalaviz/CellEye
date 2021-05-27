@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="States">
+    <file>images/plot.png</file>
     <file>images/edit-undo.png</file>
     <file>images/media-playback-start.png</file>
     <file>images/media-playback-stop.png</file>
