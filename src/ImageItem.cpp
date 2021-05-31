@@ -6,13 +6,9 @@
 #include "logger.h"
 #include <QGraphicsSceneMouseEvent>
 
-ImageItem::ImageItem(QGraphicsItem *parent) : QGraphicsPixmapItem(parent) {
+ImageItem::ImageItem(QGraphicsItem *parent) : QGraphicsPixmapItem(parent) {}
 
-}
-
-ImageItem::ImageItem(const QPixmap &pixmap, QGraphicsItem *parent) : QGraphicsPixmapItem(pixmap, parent) {
-
-}
+ImageItem::ImageItem(const QPixmap &pixmap, QGraphicsItem *parent) : QGraphicsPixmapItem(pixmap, parent) {}
 
 void ImageItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 

@@ -36,6 +36,8 @@ Q_OBJECT
 
     bool debug;
 
+
+
 public:
     explicit Window(QMainWindow *parent = 0, bool _debug = false);
 protected slots:
@@ -74,6 +76,7 @@ protected slots:
     void setCenter(double x, double y);
     void moveCenter(double x, double y);
     void unsetCenter(double x, double y);
+    void setFrame(int id);
 
     void update(bool reload);
     void next(){

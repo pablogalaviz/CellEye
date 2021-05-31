@@ -303,12 +303,10 @@ void Window::auto_process() {
 
 void  Window::plot(){
 
-   //if(session_data.data.empty()){return;}
+    if(session_data.data.empty()){return;}
 
     QDialog dialog;
-
-    plotDialog plot_ui(&dialog,session_data.data);
-
+    plotDialog plot_ui(&dialog,session_data.data,current,this);
     dialog.exec();
 
 }
@@ -378,6 +376,18 @@ void Window::update(bool reload) {
     }
 
 
+}
+
+
+void Window::setFrame(int id){
+
+    saveData();
+    if(images.empty()){return;}
+    if (0 <= id && id < images.size()) { current=id; }
+    loadFrame();
+    update(true);
+
+    LOGGER.debug << "Set frame to: " << id << std::endl;
 }
 
 
