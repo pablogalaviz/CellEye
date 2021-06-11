@@ -211,10 +211,10 @@
          <number>1</number>
         </property>
         <property name="maximum">
-         <number>100</number>
+         <number>20</number>
         </property>
         <property name="value">
-         <number>10</number>
+         <number>1</number>
         </property>
        </widget>
       </item>
@@ -231,10 +231,10 @@
          <number>1</number>
         </property>
         <property name="maximum">
-         <number>100</number>
+         <number>255</number>
         </property>
         <property name="value">
-         <number>70</number>
+         <number>125</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -315,6 +315,7 @@
     </property>
     <addaction name="action_Open"/>
     <addaction name="action_Save"/>
+    <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -419,6 +420,11 @@
    </property>
    <property name="toolTip">
     <string>Show area plot</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences</string>
    </property>
   </action>
  </widget>

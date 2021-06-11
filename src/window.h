@@ -51,6 +51,9 @@ protected slots:
     }
     void changeProcessState(bool value){
         processState = value;
+        if(!value){
+            saveData(true);
+        }
         LOGGER.debug << "process state: " << (value? "true":"false") << std::endl;
     }
     void changeFlagState(bool value){
@@ -80,14 +83,14 @@ protected slots:
 
     void update(bool reload);
     void next(){
-        saveData();
+        saveData(processState);
         if(images.empty()){return;}
         if (current < images.size()-1) { current++; }
         loadFrame();
         update(true);
     }
     void previous(){
-        saveData();
+        saveData(processState);
         if(images.empty()){return;}
         if (current > 0) { current--; }
         loadFrame();
@@ -120,7 +123,7 @@ private:
     std::vector<QGraphicsPathItem *> pathItems;
 
     void loadData();
-    void saveData();
+    void saveData(bool update_session);
     void loadFrame();
 
 };

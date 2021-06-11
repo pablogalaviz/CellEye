@@ -28,8 +28,12 @@ plotDialog::plotDialog(QDialog *parent, std::map<int,frameData> data, int curren
     double factor=(high-h_margin)/(area_max-area_min);
 
     std::vector<int> y_data;
+    std::vector<int> y_p_err;
+    std::vector<int> y_m_err;
     for(auto &item : data) {
         y_data.push_back(int(floor(h_margin*0.5+factor*(item.second.area_path-area_min))));
+        y_p_err.push_back(int(floor(h_margin*0.5+factor*(item.second.area_path-item.second.error_area_path-area_min))));
+        y_m_err.push_back(int(floor(h_margin*0.5+factor*(item.second.area_path+item.second.error_area_path-area_min))));
     }
 
 
@@ -62,19 +66,22 @@ plotDialog::plotDialog(QDialog *parent, std::map<int,frameData> data, int curren
         label->setDefaultTextColor(Qt::black);
 
         pointItem *item = new pointItem(x_data[i], x_data[i]*x_step,high-y_data[i],5,5);
+        QPen point_pen = QPen(Qt::blue);
+
         if(x_data[i] == current){
-            item->setPen(QPen(Qt::red));
+            point_pen.setColor(Qt::red);
             item->setBrush(QBrush(Qt::red));
         }
         else {
-            item->setPen(QPen(Qt::blue));
             item->setBrush(QBrush(Qt::blue));
         }
+        item->setPen(point_pen);
         item->setAcceptedMouseButtons(Qt::LeftButton);
         points.push_back(item);
         QObject::connect(item, SIGNAL(setFrame(int)), window, SLOT (setFrame(int)));
         QObject::connect(item, SIGNAL(setFrame(int)), this, SLOT (setFrame(int)));
 
+        //plot_ui.graphicsView->scene()->addLine(i*x_step, y_m_err[i], i*x_step, y_p_err[i], point_pen);
         plot_ui.graphicsView->scene()->addItem(item);
 
     }

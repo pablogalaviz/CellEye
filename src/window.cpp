@@ -106,10 +106,10 @@ void Window::loadFrame() {
 
 }
 
-void Window::saveData() {
+void Window::saveData(bool update_session) {
 
     std::ofstream file(dataFileName);
-    if (processState) {
+    if (update_session) {
         session_data.data[current] = currentFrameData;
     }
     file << serialize(session_data);
@@ -229,14 +229,23 @@ void Window::auto_process() {
     LOGGER.debug << "Auto process " << std::endl;
 
     QProgressDialog progress("Task in progress...", "Cancel", 0, images.size(), this);
-    progress.setWindowModality(Qt::WindowModal);
+    progress.setWindowModality(Qt::ApplicationModal);
+
+    progress.setAutoClose(true);
+    QVBoxLayout *layout = new QVBoxLayout;
+    foreach (QObject *obj, progress.children()) {
+        QWidget *widget = qobject_cast<QWidget *>(obj);
+        if (widget)
+            layout->addWidget(widget);
+    }
+    progress.setLayout(layout);
 
     frameData previous = currentFrameData;
-    std::vector<frameData> processResult;
+    std::map<int,frameData> processResult;
 
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> dist_1_100(1, 100);
+    std::uniform_int_distribution<> dist_1_20(1, 20);
     std::uniform_int_distribution<> dist_1_255(1, 255);
 
 
@@ -262,8 +271,8 @@ void Window::auto_process() {
             if (data.diff < error_tolerance) { break; }
 
 
-            data.threshold = rand() / RAND_MAX;
-            data.iterations = dist_1_100(gen);
+            data.threshold = dist_1_255(gen);
+            data.iterations = dist_1_20(gen);
             data.img_threshold = dist_1_255(gen);
         }
 
@@ -273,7 +282,7 @@ void Window::auto_process() {
 
         LOGGER.debug << "Frame " << i << " diff: " << bestFit.diff << std::endl;
 
-        processResult.push_back(bestFit);
+        processResult[i]=bestFit;
         previous = bestFit;
 
         if (progress.wasCanceled())
@@ -304,7 +313,7 @@ void Window::auto_process() {
 void  Window::plot(){
 
     if(session_data.data.empty()){return;}
-
+    saveData(true);
     QDialog dialog;
     plotDialog plot_ui(&dialog,session_data.data,current,this);
     dialog.exec();
@@ -381,7 +390,7 @@ void Window::update(bool reload) {
 
 void Window::setFrame(int id){
 
-    saveData();
+    saveData(processState);
     if(images.empty()){return;}
     if (0 <= id && id < images.size()) { current=id; }
     loadFrame();
@@ -397,6 +406,7 @@ void Window::setCenter(double x, double y) {
         //main_ui.graphicsView->scene()->removeItem(roiRectangle);
 
         new_roi.x = x;
+        new_roi.y = y;
         new_roi.y = y;
         new_roi.width = 1;
         new_roi.height = 1;
@@ -505,9 +515,9 @@ void Window::process(const cv::Mat &image, frameData &data) {
     }
 
     cv::Mat sure_fg;
-    double min_val, max_val;
-    cv::minMaxIdx(dist_transform, &min_val, &max_val);
-    cv::threshold(dist_transform, sure_fg, data.threshold * max_val, 255, CV_8U);
+    //double min_val, max_val;
+    //cv::minMaxIdx(dist_transform, &min_val, &max_val);
+    cv::threshold(dist_transform, sure_fg, data.threshold, 255, CV_8U);
     sure_fg.convertTo(sure_fg, CV_8U);
 
     if (debug) {
@@ -538,8 +548,8 @@ void Window::process(const cv::Mat &image, frameData &data) {
 
     cv::watershed(image_8uc3, markers_32);
 
-    cv::minMaxIdx(markers_32, &min_val, &max_val);
-    LOGGER.debug << " mask " << min_val << " " << max_val << std::endl;
+    //cv::minMaxIdx(markers_32, &min_val, &max_val);
+    //LOGGER.debug << " mask " << min_val << " " << max_val << std::endl;
 
 
     //image_8uc3.setTo(cv::Scalar(0, 0, 255), markers_32 == 2);
@@ -547,7 +557,7 @@ void Window::process(const cv::Mat &image, frameData &data) {
 
     cv::Mat mask(image_8uc3.rows, image_8uc3.cols, CV_8UC1);
     mask = 0;
-    mask.setTo(255, markers_32 == 2);
+    //mask.setTo(255, markers_32 == 2);
     mask.setTo(255, markers_32 >= 2);
 
     if (debug) {
