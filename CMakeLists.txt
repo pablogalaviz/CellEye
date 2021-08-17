@@ -22,7 +22,10 @@ find_package(Boost COMPONENTS program_options  iostreams  filesystem system REQU
 
 #message(STATUS ${Boost_LIBRARIES})
 
+set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED )
+
+message(${OpenCV_LIBS})
 
 #include_directories(/usr/local/include/)
 
