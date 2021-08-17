@@ -24,7 +24,7 @@
        <widget class="QPushButton" name="processPushButton">
         <property name="icon">
          <iconset resource="../../resources/resources.qrc">
-          <normaloff>:/States/images/media-playback-start.png</normaloff>:/States/images/media-playback-start.png</iconset>
+          <normaloff>:/States/images/go.png</normaloff>:/States/images/go.png</iconset>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -112,8 +112,12 @@
       </item>
       <item>
        <widget class="QLCDNumber" name="AreaLcdNumber">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="font">
          <font>
+          <family>Courier</family>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -312,6 +316,10 @@
    </property>
   </action>
   <action name="action_Restart">
+   <property name="icon">
+    <iconset resource="../../resources/resources.qrc">
+     <normaloff>:/States/images/edit-undo.png</normaloff>:/States/images/edit-undo.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Restart</string>
    </property>

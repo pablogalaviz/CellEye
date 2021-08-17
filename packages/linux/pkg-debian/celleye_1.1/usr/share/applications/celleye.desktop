@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Cell Eye
+GenericName=Image Analysis
+Exec=CellEye
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=/usr/share/icons/celleye/celleye.png

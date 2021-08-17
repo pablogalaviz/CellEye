@@ -1,0 +1,10 @@
+Package: celleye
+Version: 1.1
+Architecture: amd64
+Depends: qtbase5-dev (>=5), libopencv-core-dev (>=3), libopencv-imgcodecs-dev (>=3)
+Section: custom
+Priority: optional
+Essential: no
+Installed-Size: 5564080
+Maintainer: Pablo Galaviz pgalaviz@cmri.org.au
+Description: Time lapse image analysis of tumour spheroids
