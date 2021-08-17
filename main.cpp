@@ -3,30 +3,27 @@
 #include <csignal>
 #include <iostream>
 #include "src/utils.h"
-#include "src/window.h"
-#include <opencv2/highgui.hpp>
+#include "src/cellEye.h"
 #include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
 #include <QApplication>
 #include <QDebug>
-#include <QtWidgets/QPushButton>
-//#include <QtUiTools/QtUiTools>
 
 
 int main(int ac, char *av[]) {
     try {
 
         auto start_time = std::chrono::system_clock::now();
-
         bool backup;
         std::string output_path;
+        std::string preference_file;
         boost::program_options::options_description genericOptions(
-                "FishEye.  \nAllowed common:");
+                "CellEye.  \nAllowed common:");
         genericOptions.add_options()
                 ("backup", boost::program_options::value<bool>(&backup)->default_value(true), "Create a backup of previous output")
                 ("debug,d", "Shows debug messages in log")
                 ("debug-image,i", "Shows image processing steps")
-                ("output_path,o", boost::program_options::value<std::string>(&output_path)->default_value("output"), "Output directory name")
+                ("output_path,o", boost::program_options::value<std::string>(&output_path)->default_value(".CellEye"), "Output directory name")
+                ("preference_file,p", boost::program_options::value<std::string>(&preference_file)->default_value(".cell_eye.json"), "Preference file name")
                 ("help,h", "Shows a help message")
                 ("silent,s", "Shows only errors");
 
@@ -64,7 +61,7 @@ int main(int ac, char *av[]) {
 
         bool debug_image = vm.count("debug-image");
 
-        Window mainWindow(&widget, debug_image);
+        CellEyeWindow mainWindow(&widget, debug_image, preference_file);
 
         widget.show();
 

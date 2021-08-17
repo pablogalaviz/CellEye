@@ -46,30 +46,33 @@ void deserialize_d( const boost::property_tree::ptree &tree, std::vector<T> & re
 
 struct frameData {
 
-    int iterations = 10;
-    double threshold = 0.7;
-    int img_threshold = 125;
-    int error = 5;
-    double area_pixel = 0;
-    double error_area_pixel = 0;
-    double area_path = 0;
-    double error_area_path = 0;
-    bool flag=false;
-    std::vector<std::vector<cv::Point> > contours;
+    int remove_noise_iterations = 10;
+    int image_binary_threshold = 125;
+    int manual_threshold=false;
+    double area = 0;
+    double max_area = 0;
+    double min_area = 0;
+    double error = 0;
+    bool activate_processing_flag=false;
+    std::vector<cv::Point>  contour;
     cv::Rect roi;
-    double diff = 1e6;
+    cv::RotatedRect ellipse;
+    double max_radio;
+    double min_radio;
 
     virtual std::string serialize() const {
         std::stringstream result;
         result << "{";
-        result << "\"iterations\":" << iterations;
-        result << ",\"threshold\":" << threshold;
-        result << ",\"img_threshold\":" << img_threshold;
+        result << "\"remove_noise_iterations\":" << remove_noise_iterations;
+        result << ",\"image_binary_threshold\":" << image_binary_threshold;
+        result << ",\"manual_threshold\":" << manual_threshold;
+        result << ",\"area\":" << area;
+        result << ",\"max_area\":" << max_area;
+        result << ",\"min_area\":" << min_area;
         result << ",\"error\":" << error;
-        result << ",\"area_pixel\":" << area_pixel;
-        result << ",\"error_area_pixel\":" << error_area_pixel;
-        result << ",\"area_path\":" << area_path;
-        result << ",\"error_area_path\":" << error_area_path;
+        result << ",\"max_radio\":" << max_radio;
+        result << ",\"min_radio\":" << min_radio;
+
         result << ",\"roi\":{";
         result << "\"x\":" << roi.x;
         result << ",\"y\":" << roi.y;
@@ -77,19 +80,20 @@ struct frameData {
         result << ",\"height\":" << roi.height;
         result << "}";
 
-        result << ",\"contours\":[";
+        result << ",\"ellipse\":{";
+        result << "\"x\":" << ellipse.center.x;
+        result << ",\"y\":" << ellipse.center.y;
+        result << ",\"width\":" << ellipse.size.width;
+        result << ",\"height\":" << ellipse.size.height;
+        result << ",\"angle\":" << ellipse.angle;
+        result << "}";
 
-        bool first = true;
-        for (auto &item : contours) {
-            result << (first ? "[" : ",[");
-            for (int i = 0; i < item.size(); i++) {
-                result << (i == 0 ? "{" : ",{");
-                result << "\"x\":" << item[i].x;
-                result << ",\"y\":" << item[i].y;
-                result << "}";
-            }
-            first = false;
-            result << "]";
+        result << ",\"contour\":[";
+        for (int i = 0; i < contour.size(); i++) {
+            result << (i == 0 ? "{" : ",{");
+            result << "\"x\":" << contour[i].x;
+            result << ",\"y\":" << contour[i].y;
+            result << "}";
         }
         result << "]";
         result << "}";
@@ -98,19 +102,28 @@ struct frameData {
 
     virtual void deserialize(const boost::property_tree::ptree &tree) {
         try {
-            iterations = tree.get<int>("iterations");
-            threshold = tree.get<double>("threshold");
-            img_threshold = tree.get<double>("img_threshold");
-            error = tree.get<int>("error");
-            area_path = tree.get<double>("area_path");
-            error_area_path = tree.get<double>("error_area_path");
-            area_pixel = tree.get<double>("area_pixel");
-            error_area_pixel = tree.get<double>("error_area_pixel");
+            remove_noise_iterations = tree.get<int>("remove_noise_iterations");
+            image_binary_threshold = tree.get<int>("image_binary_threshold");
+            manual_threshold = tree.get<int>("manual_threshold");
+            area = tree.get<double>("area");
+            max_area = tree.get<double>("max_area");
+            min_area = tree.get<double>("min_area");
+            error = tree.get<double>("error");
+            max_radio = tree.get<double>("max_radio");
+            min_radio = tree.get<double>("min_radio");
+
             roi.x = tree.get<int>("roi.x");
             roi.y = tree.get<int>("roi.y");
             roi.width = tree.get<int>("roi.width");
             roi.height = tree.get<int>("roi.height");
-            deserialize_d(tree.get_child("contours"),contours);
+
+            ellipse.center.x=tree.get<double>("ellipse.x");
+            ellipse.center.y=tree.get<double>("ellipse.y");
+            ellipse.size.width = tree.get<double>("ellipse.width");
+            ellipse.size.height = tree.get<double>("ellipse.height");
+            ellipse.angle = tree.get<double>("ellipse.angle");
+
+            deserialize_d(tree.get_child("contour"),contour);
         }
         catch (std::exception &e) {
             LOGGER.error << "From: " << __FILE__ << ":" << __LINE__ << std::endl;

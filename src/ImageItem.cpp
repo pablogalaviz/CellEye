@@ -12,16 +12,16 @@ ImageItem::ImageItem(const QPixmap &pixmap, QGraphicsItem *parent) : QGraphicsPi
 
 void ImageItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 
-    emit(setCenter(event->pos().x(), event->pos().y() ));
+    emit(setPointer(event->pos().x(), event->pos().y()));
 
 }
 
 
 void ImageItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-    emit(moveCenter(event->pos().x(), event->pos().y()));
+    emit(movePointer(event->pos().x(), event->pos().y()));
 }
 
 void ImageItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    emit(unsetCenter(event->pos().x(), event->pos().y()));
+    emit(unsetPointer(event->pos().x(), event->pos().y()));
 }
 

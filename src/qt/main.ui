@@ -19,7 +19,7 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QHBoxLayout" name="horizontalLayoutTopControls">
       <item>
        <widget class="QPushButton" name="processPushButton">
         <property name="icon">
@@ -70,7 +70,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="labelExperimentName">
         <property name="text">
          <string>Experiment name:</string>
         </property>
@@ -80,14 +80,14 @@
        <widget class="QLineEdit" name="experimentNameLineEdit"/>
       </item>
       <item>
-       <widget class="Line" name="line">
+       <widget class="Line" name="lineTopSeparation">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_5">
+       <widget class="QLabel" name="labelExperimentId">
         <property name="text">
          <string>Experiment id:</string>
         </property>
@@ -104,7 +104,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_6">
+       <widget class="QLabel" name="labelArea">
         <property name="text">
          <string>Area:</string>
         </property>
@@ -130,7 +130,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_7">
+       <widget class="QLabel" name="labelError">
         <property name="text">
          <string>Error:</string>
         </property>
@@ -177,7 +177,7 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayoutBottomControls">
       <item>
        <widget class="QProgressBar" name="progressBar">
         <property name="maximum">
@@ -192,21 +192,21 @@
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line_2">
+       <widget class="Line" name="lineBottomSeparation">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="labelRemoveNoiseIterations">
         <property name="text">
-         <string>Iterations:</string>
+         <string>Remove Noise Iterations:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="iterationsSpinBox">
+       <widget class="QSpinBox" name="RemoveNoiseIterationsSpinBox">
         <property name="minimum">
          <number>1</number>
         </property>
@@ -219,71 +219,19 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_2">
+       <widget class="QCheckBox" name="checkBoxImageBinaryThreshold">
         <property name="text">
-         <string>Background Threshold:</string>
+         <string>Image Binary Threshold</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSlider" name="thresholdHorizontalSlider">
-        <property name="minimum">
-         <number>1</number>
-        </property>
+       <widget class="QSlider" name="ImageBinaryThresholdHorizontalSlider">
         <property name="maximum">
          <number>255</number>
         </property>
         <property name="value">
          <number>125</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBelow</enum>
-        </property>
-        <property name="tickInterval">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Image Threshold</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSlider" name="imgThresholdHorizontalSlider">
-        <property name="maximum">
-         <number>255</number>
-        </property>
-        <property name="value">
-         <number>125</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Error region:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSlider" name="errorHorizontalSlider">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>5</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -300,7 +248,7 @@
      <x>0</x>
      <y>0</y>
      <width>1070</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEdit">
@@ -315,7 +263,7 @@
     </property>
     <addaction name="action_Open"/>
     <addaction name="action_Save"/>
-    <addaction name="actionPreferences"/>
+    <addaction name="action_Preferences"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -422,7 +370,7 @@
     <string>Show area plot</string>
    </property>
   </action>
-  <action name="actionPreferences">
+  <action name="action_Preferences">
    <property name="text">
     <string>Preferences</string>
    </property>
@@ -451,7 +399,7 @@
   <connection>
    <sender>processPushButton</sender>
    <signal>toggled(bool)</signal>
-   <receiver>iterationsSpinBox</receiver>
+   <receiver>RemoveNoiseIterationsSpinBox</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -460,38 +408,6 @@
     </hint>
     <hint type="destinationlabel">
      <x>369</x>
-     <y>706</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>processPushButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>thresholdHorizontalSlider</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>23</x>
-     <y>83</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>601</x>
-     <y>706</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>processPushButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>errorHorizontalSlider</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>23</x>
-     <y>83</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>939</x>
      <y>706</y>
     </hint>
    </hints>
@@ -515,7 +431,7 @@
   <connection>
    <sender>processPushButton</sender>
    <signal>toggled(bool)</signal>
-   <receiver>imgThresholdHorizontalSlider</receiver>
+   <receiver>ImageBinaryThresholdHorizontalSlider</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -524,6 +440,22 @@
     </hint>
     <hint type="destinationlabel">
      <x>771</x>
+     <y>706</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>processPushButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>checkBoxImageBinaryThreshold</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>23</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>654</x>
      <y>706</y>
     </hint>
    </hints>

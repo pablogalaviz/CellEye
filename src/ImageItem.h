@@ -17,9 +17,9 @@ public:
     explicit ImageItem(const QPixmap &pixmap, QGraphicsItem *parent = nullptr);
 
     signals:
-    void setCenter(double x, double y);
-    void moveCenter(double x, double y);
-    void unsetCenter(double x, double y);
+    void setPointer(double x, double y);
+    void movePointer(double x, double y);
+    void unsetPointer(double x, double y);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

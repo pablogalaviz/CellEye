@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>DialogPreference</class>
+ <widget class="QDialog" name="DialogPreference">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>480</height>
+    <width>338</width>
+    <height>204</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>440</y>
-     <width>621</width>
+     <y>160</y>
+     <width>311</width>
      <height>32</height>
     </rect>
    </property>
@@ -32,10 +32,10 @@
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>29</x>
-     <y>19</y>
-     <width>401</width>
-     <height>191</height>
+     <x>9</x>
+     <y>9</y>
+     <width>312</width>
+     <height>131</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -54,25 +54,40 @@
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="QSpinBox" name="spinBox">
+     <widget class="QSpinBox" name="maximum_method_iterations_spinBox">
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>10</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="singleStep">
+       <number>1</number>
       </property>
      </widget>
     </item>
     <item row="1" column="1">
-     <widget class="QDoubleSpinBox" name="doubleSpinBox">
+     <widget class="QDoubleSpinBox" name="area_tolerance_doubleSpinBox">
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
       <property name="decimals">
        <number>3</number>
       </property>
       <property name="minimum">
        <double>0.001000000000000</double>
       </property>
+      <property name="maximum">
+       <double>2.000000000000000</double>
+      </property>
       <property name="singleStep">
        <double>0.001000000000000</double>
       </property>
       <property name="value">
-       <double>1.000000000000000</double>
+       <double>0.010000000000000</double>
       </property>
      </widget>
     </item>
@@ -80,6 +95,22 @@
      <widget class="QLabel" name="label_3">
       <property name="text">
        <string>Maximum automated interations:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QSpinBox" name="maximum_automated_iterations_spinBox">
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="minimum">
+       <number>100</number>
+      </property>
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="value">
+       <number>1000</number>
       </property>
      </widget>
     </item>
@@ -91,7 +122,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>DialogPreference</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -107,7 +138,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>DialogPreference</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
